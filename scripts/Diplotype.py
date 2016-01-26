@@ -7,23 +7,27 @@ Created on Thu Jan 21 19:34:14 2016
 Written in python 3.5, but designed to also work in python 2.7
 """
 from __future__ import print_function
-from collections import abc
+from collections import abc, defaultdict
 import itertools as it
 import sympy as sym
 from sympy import Symbol
-from collections import defaultdict
-from pprint import pprint
 
 class Diplotype(object):
     """Two locus diplotype"""
     
-    def __init__(self, haplotypes):
+    def __init__(self, haplotypes, probability=None):
         if not isinstance(haplotypes, abc.Sequence):
             raise TypeError("haplotypes for diplotype must be a sequence.")
         if len(haplotypes) != 2:
             raise ValueError("Two haplotypes must be given (diploid).")
         if not all(len(x)==2 for x in haplotypes):
             raise ValueError("Each haplotypes must have two loci.")
+        if probability is not None:
+            if not issubclass(type(probability), sym.Expr):
+                raise TypeError("probability must of a sympy expression")
+            self.prob = probability
+        else:
+            self.prob = 1
         self.origin = haplotypes
         self.maternal = haplotypes[0]
         self.paternal = haplotypes[1]
@@ -35,18 +39,12 @@ class Diplotype(object):
     
     def __str__(self):
         return "|".join([self.maternal, self.paternal])
-        
-    def __iter__(self):
-        return (i for i in self.origin)
-    
+           
     def __eq__(self, other):
         if not issubclass(type(other), type(self)):
             return False
         else:
-            return self.origin == other.origin
-    
-    def __getitem__(self, x):
-        return self.origin[x]
+            return self.origin == other.origin 
  
     def __contains__(self, x):
         return x in self.alleles
@@ -75,7 +73,7 @@ class Diplotype(object):
         
         """    
         r = Symbol("r")    
-        probs = ((1-r)/2, (1-r)/2, r/2, r/2)
+        probs = (x*self.prob for x in ((1-r)/2, (1-r)/2, r/2, r/2))
         prods = (self.maternal,
                  self.paternal,
                  ''.join([self.maternal[0], self.paternal[1]]),
@@ -85,8 +83,10 @@ class Diplotype(object):
     def selfmate(self):
         """Return all possible combinations of gametes"""
         gams = self.gametes()
-        return [( Diplotype((g[0],h[0])), g[1]*h[1] )
-                           for g,h in it.product(gams, repeat = 2)]
+        zygotes = []
+        for g,h in it.product(gams, repeat = 2):
+            zygotes.append(Diplotype((g[0],h[0]), probability=g[1]*h[1]))
+        return zygotes
                                                         
      
 if __name__ == '__main__':        
@@ -99,9 +99,9 @@ if __name__ == '__main__':
     print('\n')
     probs = defaultdict(float)
     for y in b.selfmate():
-        probs[str(y[0])] += y[1]
+        probs[str(y)] += y.prob
     print("grouped by genotype:")
-    pprint(probs.items())
+    print(probs.items())
     print('\n')
     print("AA|AA probability factored:")
     print(sym.factor(probs['AA|AA']))
