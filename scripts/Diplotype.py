@@ -13,7 +13,12 @@ import sympy as sym
 from sympy import Symbol
 
 class Diplotype(object):
-    """Two locus diplotype"""
+    """
+        Two locus diplotype
+    
+        Contains the parental gametes and the probability of origin.
+        Immutable to make mapping safe. 
+    """
     
     def __init__(self, haplotypes, probability=None):
         if not isinstance(haplotypes, abc.Sequence):
@@ -25,17 +30,20 @@ class Diplotype(object):
         if probability is not None:
             if not issubclass(type(probability), sym.Expr):
                 raise TypeError("probability must of a sympy expression")
-            self.prob = probability
+            self.__prob = probability
         else:
-            self.prob = 1
-        self.origin = haplotypes
-        self.maternal = haplotypes[0]
-        self.paternal = haplotypes[1]
+            self.__prob = 1
+        self.__origin = haplotypes
+        self.__maternal = haplotypes[0]
+        self.__paternal = haplotypes[1]
        
     #The Standard methods   
     def __repr__(self):
         class_name = type(self).__name__
-        return '{}({})'.format(class_name, self.origin)
+        if self.prob == 1:
+            return '{}({})'.format(class_name, self.__origin)
+        else:
+            return '{}({}, {})'.format(class_name, self.__origin, self.prob)
     
     def __str__(self):
         return "|".join([self.maternal, self.paternal])
@@ -44,23 +52,38 @@ class Diplotype(object):
         if not issubclass(type(other), type(self)):
             return False
         else:
-            return self.origin == other.origin 
+            return self.__origin == other.__origin 
  
     def __contains__(self, x):
         return x in self.alleles
     
     #class specific attributes
     @property
+    def maternal(self):
+        """maternal getter"""
+        return self.__maternal
+    
+    @property
+    def paternal(self):
+        """paternal getter"""
+        return self.__paternal
+        
+    @property
+    def prob(self):
+        """prob getter"""
+        return self.__prob
+    
+    @property
     def alleles(self):
-        return {x for y in self.origin for x in y}
+        return {x for y in self.__origin for x in y}
 
     @property
     def locus1(self):
-        return ''.join([x[0] for x in self.loci])
+        return ''.join(x[0] for x in self.__origin)
     
     @property
     def locus2(self):
-        return ''.join([x[1] for x in self.loci])
+        return ''.join([x[1] for x in self.__origin])
     
     #here is where we actually do something
     def gametes(self):
