@@ -9,7 +9,7 @@ Written in python 3.5, but designed to also work in python 2.7
 from __future__ import print_function
 from collections import abc, defaultdict
 import itertools as it
-import sympy as sym
+import sympy
 from sympy import Symbol
 
 class Diplotype(object):
@@ -17,7 +17,40 @@ class Diplotype(object):
         Two locus diplotype
     
         Contains the parental gametes and the probability of origin.
-        Immutable to make mapping safe. 
+        Immutable to make mapping safe.
+        
+        Doctests:
+        >>> d = Diplotype(("AB", "CD"))
+        >>> d
+        Diplotype(('AB', 'CD'))
+        
+        >>> str(d)
+        'AB|CD'
+        
+        >>> d == Diplotype(("AB", "CD"))
+        True
+        
+        >>> d.gametes()
+        (('AB', -r/2 + 1/2), ('CD', -r/2 + 1/2), ('AD', r/2), ('BC', r/2))
+        
+        >>> d.selfmate()[0]
+        Diplotype(('AB', 'AB'), (-r/2 + 1/2)**2)
+        
+        >>> e = Diplotype(("AB","CD"), probability=r**2)
+        >>> e
+        Diplotype(('AB', 'CD'), r**2)
+        
+        >>> e.gametes()[0]
+        ('AB', r**2*(-r/2 + 1/2))      
+        
+        >>> e.gametes()[1]
+        ('CD', r**2*(-r/2 + 1/2))
+        
+        >>> e == d
+        False
+        
+        >>> e == Diplotype(("AB","CD"), probability=r**2)
+        True
     """
     
     def __init__(self, haplotypes, probability=None):
@@ -28,7 +61,7 @@ class Diplotype(object):
         if not all(len(x)==2 for x in haplotypes):
             raise ValueError("Each haplotypes must have two loci.")
         if probability is not None:
-            if not issubclass(type(probability), sym.Expr):
+            if not issubclass(type(probability), sympy.Expr):
                 raise TypeError("probability must of a sympy expression")
             self.__prob = probability
         else:
@@ -129,5 +162,5 @@ if __name__ == '__main__':
     print(probs.items())
     print('\n')
     print("AA|AA probability factored:")
-    print(sym.factor(probs['AA|AA']))
+    print(sympy.factor(probs['AA|AA']))
     
