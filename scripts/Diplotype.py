@@ -51,8 +51,10 @@ class Diplotype(object):
     def __eq__(self, other):
         if not issubclass(type(other), type(self)):
             return False
+        elif self.__origin == other.__origin and self.__prob == other.__prob:
+             return True
         else:
-            return self.__origin == other.__origin 
+            return False
  
     def __contains__(self, x):
         return x in self.alleles
