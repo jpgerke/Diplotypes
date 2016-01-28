@@ -14,10 +14,10 @@ from sympy import Symbol
 
 class Diplotype(object):
     """
-        Two locus diplotype
+        Phased Two-locus diplotype
     
         Contains the parental gametes and the probability of origin.
-        Immutable to make mapping safe.
+        Immutable.
         
         Doctests:
         >>> d = Diplotype(("AB", "CD"))
@@ -30,20 +30,21 @@ class Diplotype(object):
         >>> d == Diplotype(("AB", "CD"))
         True
         
-        >>> d.gametes()
+        >>> tuple(d.gametes())
         (('AB', -r/2 + 1/2), ('CD', -r/2 + 1/2), ('AD', r/2), ('BC', r/2))
         
         >>> d.selfmate()[0]
         Diplotype(('AB', 'AB'), (-r/2 + 1/2)**2)
         
+        >>> r = Symbol("r")
         >>> e = Diplotype(("AB","CD"), probability=r**2)
         >>> e
         Diplotype(('AB', 'CD'), r**2)
         
-        >>> e.gametes()[0]
+        >>> tuple(e.gametes())[0]
         ('AB', r**2*(-r/2 + 1/2))      
         
-        >>> e.gametes()[1]
+        >>> tuple(e.gametes())[1]
         ('CD', r**2*(-r/2 + 1/2))
         
         >>> e == d
@@ -136,16 +137,22 @@ class Diplotype(object):
                  self.paternal,
                  ''.join([self.maternal[0], self.paternal[1]]),
                  ''.join([self.maternal[1], self.paternal[0]]))
-        return tuple(zip(prods, probs))
+        return zip(prods, probs)
             
     def selfmate(self):
         """Return all possible combinations of gametes"""
-        gams = self.gametes()
         zygotes = []
-        for g,h in it.product(gams, repeat = 2):
+        for g,h in it.product(self.gametes(), repeat = 2):
             zygotes.append(Diplotype((g[0],h[0]), probability=g[1]*h[1]))
         return zygotes
-                                                        
+
+    @classmethod
+    def cross(cls, ind1, ind2):
+        """Cross two diplotype objects"""
+        zygotes = []
+        for g,h in it.product(ind1.gametes(), ind2.gametes()):
+            zygotes.append(cls((g[0],h[0]), probability=g[1]*h[1]))
+        return zygotes                                                    
      
 if __name__ == '__main__':        
     b = Diplotype(["AA", "BB"])
@@ -163,4 +170,5 @@ if __name__ == '__main__':
     print('\n')
     print("AA|AA probability factored:")
     print(sympy.factor(probs['AA|AA']))
+    Diplotype.cross(b,d)
     
