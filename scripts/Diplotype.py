@@ -136,7 +136,7 @@ class Diplotype(object):
         prods = (self.maternal,
                  self.paternal,
                  ''.join([self.maternal[0], self.paternal[1]]),
-                 ''.join([self.maternal[1], self.paternal[0]]))
+                 ''.join([self.paternal[0], self.maternal[1]]))
         return zip(prods, probs)
             
     def selfmate(self):
@@ -144,7 +144,7 @@ class Diplotype(object):
         zygotes = []
         for g,h in it.product(self.gametes(), repeat = 2):
             zygotes.append(Diplotype((g[0],h[0]), probability=g[1]*h[1]))
-        return zygotes
+        return Population(zygotes)
 
     @classmethod
     def cross(cls, ind1, ind2):
@@ -152,7 +152,42 @@ class Diplotype(object):
         zygotes = []
         for g,h in it.product(ind1.gametes(), ind2.gametes()):
             zygotes.append(cls((g[0],h[0]), probability=g[1]*h[1]))
-        return zygotes                                                    
+        return Population(zygotes)                                                    
+
+class Population(tuple):
+    """An immutable sequence container for diplotypes"""
+    
+    def __new__(cls, x):
+        return super().__new__(cls, (x))
+    
+    def combine(self):
+        """
+        Collect identical diplotypes
+        
+        Returns a new object of same class        
+        """
+        cls = type(self)
+        t = defaultdict(int)
+        for y in self:
+           t[y._Diplotype__origin] += y.prob
+        new = []
+        for key, value in t.items():
+            new.append(Diplotype(key, value))
+        return cls(new)
+        
+    def unphase(self):
+        """
+        Combine while disregarding phase
+        
+        Returns a defaultdict         
+        """
+        t = defaultdict(int)
+        for y in self:
+            loc1 = sorted(y.locus1)
+            loc2 = sorted(y.locus2)
+            key = ''.join(loc1) + ''.join(loc2)
+            t[key] += y.prob
+        return t            
      
 if __name__ == '__main__':        
     b = Diplotype(["AA", "BB"])
@@ -171,4 +206,7 @@ if __name__ == '__main__':
     print("AA|AA probability factored:")
     print(sympy.factor(probs['AA|AA']))
     Diplotype.cross(b,d)
+    print("\nUnphased Genotype Frequencies for an F2 generation:")
+    for x in sorted( b.selfmate().unphase().items() ):
+        print(x)
     
