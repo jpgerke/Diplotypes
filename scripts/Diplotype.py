@@ -50,8 +50,14 @@ class Diplotype(object):
         >>> e == d
         False
         
-        >>> e == Diplotype(("AB","CD"), probability=r**2)
+        >>> e == Diplotype(('AB','CD'), probability=r**2)
         True
+        
+        >>> A = Diplotype(('AA', 'AA'))
+        >>> B = Diplotype(('BB', 'BB'))
+        >>> F1 = Diplotype.cross(A,B)
+        >>> sympy.simplify(F1.unphase()['ABAB'])
+        1
     """
     
     def __init__(self, haplotypes, probability=None):
@@ -132,7 +138,7 @@ class Diplotype(object):
         
         """    
         r = Symbol("r")    
-        probs = (x*self.prob for x in ((1-r)/2, (1-r)/2, r/2, r/2))
+        probs = ((1-r)/2, (1-r)/2, r/2, r/2)
         prods = (self.maternal,
                  self.paternal,
                  ''.join([self.maternal[0], self.paternal[1]]),
@@ -143,8 +149,15 @@ class Diplotype(object):
         """Return all possible combinations of gametes"""
         zygotes = []
         for g,h in it.product(self.gametes(), repeat = 2):
-            zygotes.append(Diplotype((g[0],h[0]), probability=g[1]*h[1]))
+            gamete_prob = g[1]*h[1]
+            prob = self.prob * gamete_prob
+            zygotes.append(Diplotype((g[0],h[0]), probability=prob))
         return Population(zygotes)
+
+    def simplify(self):
+        """Simplify probability if possible"""
+        simp = sympy.simplify(self.__prob)   
+        return Diplotype(self.__origin, simp)
 
     @classmethod
     def cross(cls, ind1, ind2):
@@ -188,6 +201,30 @@ class Population(tuple):
             key = ''.join(loc1) + ''.join(loc2)
             t[key] += y.prob
         return t            
+
+    def cycle(self):
+        """Turn over a selfing population to the next generation."""
+        #a generator of selfed Diplotypes from the Population
+        nursery = (x.selfmate().combine() for x in self)
+        
+        #flatten into an iterator of all Diplotypes regardless of origin
+        flat = it.chain.from_iterable(nursery)
+        
+        #construct a population from the iterator and combine like diplos
+        return Population(flat).combine()
+
+    def marginal(self):
+        """
+        Calculate marginal probability.
+
+        Primarily for testing / debugging at this point.        
+        """
+        marg = 0
+        for x in self:
+            marg += x.prob
+        return marg
+        
+            
      
 if __name__ == '__main__':        
     b = Diplotype(["AA", "BB"])
