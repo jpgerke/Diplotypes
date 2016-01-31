@@ -9,8 +9,14 @@ Written in python 3.5, but designed to also work in python 2.7
 from __future__ import print_function
 from collections import abc, defaultdict
 import itertools as it
+import numpy as np
 import sympy
 from sympy import Symbol
+
+#reverse haldane
+def M_to_r(M):
+    return 0.5*(1 - np.exp(-2*M))
+recfun = np.vectorize(M_to_r)
 
 class Diplotype(object):
     """
@@ -224,7 +230,13 @@ class Population(tuple):
             marg += x.prob
         return marg
         
-            
+    def tofunc(self):
+        """Lambdify the equations for a population"""
+        r = sympy.Symbol('r')
+        newdict = {}
+        for dip in self:
+            newdict[str(dip)] = sympy.lambdify(r, dip.prob, "numpy")
+        return newdict         
      
 if __name__ == '__main__':        
     b = Diplotype(["AA", "BB"])
