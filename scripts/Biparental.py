@@ -5,10 +5,10 @@ Created on Sat Jan 30 11:12:10 2016
 @author: justi
 """
 
-import Diplotype as dp
 import sympy
-from sympy.plotting import plot
+import Diplotype as dp
 import numpy as np
+from sympy.plotting import plot
 import matplotlib.pyplot as plt
 
 
@@ -16,20 +16,20 @@ import matplotlib.pyplot as plt
 r = sympy.Symbol('r')
 k = sympy.Symbol('k')
 
-halfk = (1/2)**k
-poly = (1 - 2*r + 2*r**2)**(k-1)
+halfk = (1/2)**k #exponential decay due to fixation by homozygosity
+poly = (1 - 2*r + 2*r**2)**(k-1) #polynomial present in all but decaying
 absorb = ( (1-2*r)**k) / (1+2*r) #specific to absorbing states
-decay = (1-2*r)**(k-1) # specific to dec
+decay = (1-2*r)**(k-1) # specific to decaying states
 
-eqn1 = 1/(2*(1+2*r)) - (1/2)**(k+1)*(2 - poly + absorb)
+eqn1 = 1/(2*(1+2*r)) - (1/2)**(k+1)*(2 - poly + absorb) #AA|AA
 
-eqn2 = r/(1+2*r) - (1/2)**(k+1)*(2 - poly - absorb)
+eqn2 = r/(1+2*r) - (1/2)**(k+1)*(2 - poly - absorb) #AA|BB
 
-eqn3 = halfk * (1 - poly)
+eqn3 = halfk * (1 - poly) #AA|AB
 
-eqn4 = halfk * (poly + decay)
+eqn4 = halfk * (poly + decay) #AA|BB
 
-eqn5 = halfk * (poly - decay)
+eqn5 = halfk * (poly - decay) #AB|BA
 
 eqs = (eqn1, eqn2, eqn3, eqn4, eqn5)
 full = eqn1*2 + eqn2*2 + eqn3*4 + eqn4 + eqn5
@@ -65,8 +65,9 @@ F4 = F3.cycle()
 #centimorgan range from 0 to 100 (in Morgans)
 cM = np.arange(0,1,0.01)
 rvec = dp.recfun(cM)
-F2_eqs = F2.combine().tofunc()
-
+F2_eqs = F2.tofunc()
+print(F2.unphase())
+print(F2_eqs)
 #AAAA = F4.unphase()['AAAA']
 #lamb = sympy.lambdify(r, AAAA, "numpy")
 #plt.plot(np.arange(0,0.5,0.05), lamb(np.arange(0,0.5,0.05)))

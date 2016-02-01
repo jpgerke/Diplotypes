@@ -76,9 +76,9 @@ class Diplotype(object):
         if probability is not None:
             if not issubclass(type(probability), sympy.Expr):
                 raise TypeError("probability must of a sympy expression")
-            self.__prob = probability
+            self.prob = probability
         else:
-            self.__prob = 1
+            self.prob = 1
         self.__origin = haplotypes
         self.__maternal = haplotypes[0]
         self.__paternal = haplotypes[1]
@@ -97,7 +97,7 @@ class Diplotype(object):
     def __eq__(self, other):
         if not issubclass(type(other), type(self)):
             return False
-        elif self.__origin == other.__origin and self.__prob == other.__prob:
+        elif self.__origin == other.__origin and self.prob == other.prob:
              return True
         else:
             return False
@@ -115,11 +115,6 @@ class Diplotype(object):
     def paternal(self):
         """paternal getter"""
         return self.__paternal
-        
-    @property
-    def prob(self):
-        """prob getter"""
-        return self.__prob
     
     @property
     def alleles(self):
@@ -234,8 +229,8 @@ class Population(tuple):
         """Lambdify the equations for a population"""
         r = sympy.Symbol('r')
         newdict = {}
-        for dip in self:
-            newdict[str(dip)] = sympy.lambdify(r, dip.prob, "numpy")
+        for key, value in self.unphase().items():
+            newdict[key] = sympy.lambdify(r, value, "numpy")
         return newdict         
      
 if __name__ == '__main__':        
