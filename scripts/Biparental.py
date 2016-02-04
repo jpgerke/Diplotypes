@@ -13,8 +13,7 @@ import matplotlib.pyplot as plt
 
 
 ### Karl Broman's equations from Table 1 of Genetics 2012 ###
-r = sympy.Symbol('r')
-k = sympy.Symbol('k')
+r,k = sympy.symbols('r k')
 
 halfk = (1/2)**k #exponential decay due to fixation by homozygosity
 poly = (1 - 2*r + 2*r**2)**(k-1) #polynomial present in all but decaying
@@ -34,11 +33,12 @@ eqn5 = halfk * (poly - decay) #AB|BA
 eqs = (eqn1, eqn2, eqn3, eqn4, eqn5)
 full = eqn1*2 + eqn2*2 + eqn3*4 + eqn4 + eqn5
 
+#validate a few examples
 tol = 1e-8
-assert full.evalf(subs={r:0.2,k:2}) - 1.0 < tol
-assert full.evalf(subs={r:0.5,k:3}) - 1.0 < tol
-assert full.evalf(subs={r:0.0,k:2}) - 1.0 < tol
-assert full.evalf(subs={r:0.2,k:4}) - 1.0 < tol
+assert abs(full.evalf(subs={r:0.2,k:2})) - 1.0 < tol
+assert abs(full.evalf(subs={r:0.5,k:3})) - 1.0 < tol
+assert abs(full.evalf(subs={r:0.0,k:2})) - 1.0 < tol
+assert abs(full.evalf(subs={r:0.2,k:4})) - 1.0 < tol
 #####
 
 ### Map Broman's equations to the unphased genotypes
@@ -49,7 +49,7 @@ eqmap = {'AAAA': eqn1,  #AA
          'AAAB': eqn3,  #AH
          'ABAA': eqn3,  #HA
          'ABBB': eqn3,  #HB
-         'BBBA': eqn3,  #BH
+         'BBAB': eqn3,  #BH
          'ABAB': eqn4 + eqn5} #HH     
 #####
          
@@ -62,12 +62,32 @@ F3 = F2.cycle()
 F4 = F3.cycle()
 #####
 
+
+##### Prove the Diplotype object gives the same results as the equations
 #centimorgan range from 0 to 100 (in Morgans)
 cM = np.arange(0,1,0.01)
+#convert to recombination probabilities
 rvec = dp.recfun(cM)
-F2_eqs = F2.tofunc()
-print(F2.unphase())
-print(F2_eqs)
+
+pops = (F2, F3, F4)
+for x, pop in enumerate(pops):
+    gen = x + 2
+    eqs = pop.tofunc()
+    for key, value in eqs.items():
+        mytest = eqmap[key]
+        subbed = mytest.subs({k: gen})
+        lam = sympy.lambdify(r, subbed, "numpy")
+        diffs = np.abs(value(rvec) - lam(rvec))
+        out = "Gen {} Type {}: Max difference {}".format(gen, key, np.max(diffs))
+        print(out)
+        assert np.max(diffs) < tol
+#####
+
+
+
+
+
+
 #AAAA = F4.unphase()['AAAA']
 #lamb = sympy.lambdify(r, AAAA, "numpy")
 #plt.plot(np.arange(0,0.5,0.05), lamb(np.arange(0,0.5,0.05)))

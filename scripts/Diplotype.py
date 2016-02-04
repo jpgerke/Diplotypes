@@ -16,6 +16,8 @@ from sympy import Symbol
 #reverse haldane
 def M_to_r(M):
     return 0.5*(1 - np.exp(-2*M))
+    
+#reverse haldane function for numpy vectors
 recfun = np.vectorize(M_to_r)
 
 class Diplotype(object):
@@ -23,7 +25,7 @@ class Diplotype(object):
         Phased Two-locus diplotype
     
         Contains the parental gametes and the probability of origin.
-        Immutable.
+        Probabilities can be reassigned, but genotypes are read-only.
         
         Doctests:
         >>> d = Diplotype(("AB", "CD"))
@@ -117,7 +119,7 @@ class Diplotype(object):
         return self.__paternal
     
     @property
-    def alleles(self):
+    def alleles(self): #Haven't used this yet but keeping it around
         return {x for y in self.__origin for x in y}
 
     @property
@@ -156,7 +158,11 @@ class Diplotype(object):
         return Population(zygotes)
 
     def simplify(self):
-        """Simplify probability if possible"""
+        """
+        Simplify probability if possible
+        
+        Slow. Only use once cycling is done.        
+        """
         simp = sympy.simplify(self.__prob)   
         return Diplotype(self.__origin, simp)
 
