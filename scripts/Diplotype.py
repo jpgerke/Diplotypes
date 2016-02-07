@@ -75,9 +75,9 @@ class Diplotype(object):
             raise ValueError("Two haplotypes must be given (diploid).")
         if not all(len(x)==2 for x in haplotypes):
             raise ValueError("Each haplotypes must have two loci.")
-        if probability is not None:
+        if probability is not None and probability != 1:
             if not issubclass(type(probability), sympy.Expr):
-                raise TypeError("probability must of a sympy expression")
+                raise TypeError("probability must be 1 or a sympy expression")
             self.prob = probability
         else:
             self.prob = 1
@@ -163,7 +163,7 @@ class Diplotype(object):
         
         Slow. Only use once cycling is done.        
         """
-        simp = sympy.simplify(self.__prob)   
+        simp = sympy.simplify(self.prob)   
         return Diplotype(self.__origin, simp)
 
     @classmethod
@@ -173,6 +173,10 @@ class Diplotype(object):
         for g,h in it.product(ind1.gametes(), ind2.gametes()):
             zygotes.append(cls((g[0],h[0]), probability=g[1]*h[1]))
         return Population(zygotes)                                                    
+
+    @classmethod
+    def from_string(cls, string, delimiter='|', probability=1):
+        return cls(string.split(delimiter), probability=probability)
 
 class Population(tuple):
     """An immutable sequence container for diplotypes"""
@@ -212,11 +216,9 @@ class Population(tuple):
     def cycle(self):
         """Turn over a selfing population to the next generation."""
         #a generator of selfed Diplotypes from the Population
-        nursery = (x.selfmate().combine() for x in self)
-        
+        nursery = (x.selfmate().combine() for x in self)        
         #flatten into an iterator of all Diplotypes regardless of origin
-        flat = it.chain.from_iterable(nursery)
-        
+        flat = it.chain.from_iterable(nursery)       
         #construct a population from the iterator and combine like diplos
         return Population(flat).combine()
 
@@ -238,6 +240,13 @@ class Population(tuple):
         for key, value in self.unphase().items():
             newdict[key] = sympy.lambdify(r, value, "numpy")
         return newdict         
+
+    def vectorize(self):
+        """Return a tuple of lists of the names and probabilities"""
+        strings = [str(x) for x in self]
+        probs = [x.prob for x in self]
+        return (strings, probs)
+            
      
 if __name__ == '__main__':        
     b = Diplotype(["AA", "BB"])
