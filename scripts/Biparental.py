@@ -8,8 +8,6 @@ Created on Sat Jan 30 11:12:10 2016
 import sympy
 import Diplotype as dp
 import numpy as np
-from sympy.plotting import plot
-import matplotlib.pyplot as plt
 
 
 ### Karl Broman's equations from Table 1 of Genetics 2012 ###
@@ -62,36 +60,22 @@ F3 = F2.cycle()
 F4 = F3.cycle()
 #####
 
-
-##### Prove the Diplotype object gives the same results as the equations
-#centimorgan range from 0 to 100 (in Morgans)
-cM = np.arange(0,1,0.01)
-#convert to recombination probabilities
-rvec = dp.recfun(cM)
-
-pops = (F2, F3, F4)
-for x, pop in enumerate(pops):
-    gen = x + 2
-    eqs = pop.tofunc()
-    for key, value in eqs.items():
-        mytest = eqmap[key]
-        subbed = mytest.subs({k: gen})
-        lam = sympy.lambdify(r, subbed, "numpy")
-        diffs = np.abs(value(rvec) - lam(rvec))
-        out = "Gen {} Type {}: Max difference {}".format(gen, key, np.max(diffs))
-        print(out)
-        assert np.max(diffs) < tol
-#####
-
-
-
-
-
-
-#AAAA = F4.unphase()['AAAA']
-#lamb = sympy.lambdify(r, AAAA, "numpy")
-#plt.plot(np.arange(0,0.5,0.05), lamb(np.arange(0,0.5,0.05)))
-#
-#plot(AAAA, xlim=(0,0.5), ylim=(0,1))
-#plot(F4.unphase()['ABAB'], xlim=(0,0.5), ylim=(0,0.5))
-#plot(F2.unphase()['ABAB'], xlim=(0,0.5), ylim=(0,0.5))
+if __name__ == '__main__':
+    ##### Prove the Diplotype object gives the same results as the equations
+    #centimorgan range from 0 to 100 (in Morgans)
+    cM = np.arange(0,1,0.01)
+    #convert to recombination probabilities
+    rvec = dp.recfun(cM)
+    
+    pops = (F2, F3, F4)
+    for x, pop in enumerate(pops):
+        gen = x + 2
+        eqns = pop.tofunc()
+        for key, value in eqns.items():
+            mytest = eqmap[key].subs({k: gen})
+            lam = sympy.lambdify(r, mytest, "numpy")
+            diffs = np.abs(value(rvec) - lam(rvec))
+            out = "Gen {} Type {}: Max difference {}".format(gen, key, np.max(diffs))
+            print(out)
+            assert np.max(diffs) < tol
+    #####
