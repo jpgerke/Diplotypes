@@ -81,9 +81,8 @@ class Diplotype(object):
             self.prob = probability
         else:
             self.prob = 1
-        self.__origin = haplotypes
-        self.__maternal = haplotypes[0]
-        self.__paternal = haplotypes[1]
+        self.haplotypes = tuple(sorted(haplotypes))
+        self.alleles = {x for y in self.haplotypes for x in y}
        
     #The Standard methods   
     def __repr__(self):
@@ -94,41 +93,26 @@ class Diplotype(object):
             return '{}({}, {})'.format(class_name, self.__origin, self.prob)
     
     def __str__(self):
-        return "|".join([self.maternal, self.paternal])
+        return "|".join(self.haplotypes)
            
     def __eq__(self, other):
         if not issubclass(type(other), type(self)):
             return False
-        elif self.__origin == other.__origin and self.prob == other.prob:
+        elif self.haplotypes == other.haplotypes and self.prob == other.prob:
              return True
         else:
             return False
  
     def __contains__(self, x):
-        return x in self.alleles
-    
-    #class specific attributes
-    @property
-    def maternal(self):
-        """maternal getter"""
-        return self.__maternal
-    
-    @property
-    def paternal(self):
-        """paternal getter"""
-        return self.__paternal
-    
-    @property
-    def alleles(self): #Haven't used this yet but keeping it around
-        return {x for y in self.__origin for x in y}
+        return x in self.haplotypes
 
     @property
     def locus1(self):
-        return ''.join(x[0] for x in self.__origin)
+        return ''.join(x[0] for x in self.haplotypes)
     
     @property
     def locus2(self):
-        return ''.join([x[1] for x in self.__origin])
+        return ''.join([x[1] for x in self.haplotypes])
     
     #here is where we actually do something
     def gametes(self):
@@ -142,10 +126,10 @@ class Diplotype(object):
         """    
         r = Symbol("r")    
         probs = ((1-r)/2, (1-r)/2, r/2, r/2)
-        prods = (self.maternal,
-                 self.paternal,
-                 ''.join([self.maternal[0], self.paternal[1]]),
-                 ''.join([self.paternal[0], self.maternal[1]]))
+        prods = (self.haplotypes[0],
+                 self.haplotypes[1],
+                 ''.join([self.haplotypes[0][0], self.haplotypes[1][1]]),
+                 ''.join([self.haplotypes[1][0], self.haplotypes[0][1]]))
         return zip(prods, probs)
             
     def selfmate(self):
@@ -164,7 +148,7 @@ class Diplotype(object):
         Slow. Only use once cycling is done.        
         """
         simp = sympy.simplify(self.prob)   
-        return Diplotype(self.__origin, simp)
+        return Diplotype(self.haplotypes, simp)
 
     @classmethod
     def cross(cls, ind1, ind2):
@@ -193,7 +177,7 @@ class Population(tuple):
         cls = type(self)
         t = defaultdict(int)
         for y in self:
-           t[y._Diplotype__origin] += y.prob
+           t[y.haplotypes] += y.prob
         new = []
         for key, value in t.items():
             new.append(Diplotype(key, value))
