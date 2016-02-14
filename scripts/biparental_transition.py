@@ -16,21 +16,20 @@ F2 = dp.Diplotype.from_string('AA|BB').selfmate().combine()
 genotypes = sorted([str(x) for x in F2])
 #>>> print(genotypes)
 #['AA|AA', 'AA|AB', 'AA|BA', 'AA|BB',
-# 'AB|AA', 'AB|AB', 'AB|BA', 'AB|BB',
-# 'BA|AA', 'BA|AB', 'BA|BA', 'BA|BB',
-# 'BB|AA', 'BB|AB', 'BB|BA', 'BB|BB']
+#'AB|AB', 'AB|BA', 'AB|BB', 'BA|BA',
+#'BA|BB', 'BB|BB']
 
 #F1 Diplotype frequencies in order of 'genotypes'
 F1vec = sympy.zeros(1, len(genotypes))
 F1vec[0,genotypes.index('AA|BB')] = 1
 #>>> print(F1vec)
-#Matrix([[0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]])
+#Matrix([[0, 0, 0, 1, 0, 0, 0, 0, 0, 0]])
 
 #Define equivalent states
 states = {
  'AA|AA': {'AA|AA', 'BB|BB'},
  'AB|AB': {'AB|AB', 'BA|BA'},
- 'AA|AB': {'AA|AB', 'AB|AA', 'BA|BB', 'BB|BA', 'AA|BA', 'AB|BB', 'BA|AA', 'BB|AB'},
+ 'AA|AB': {'AA|AB', 'BA|BB', 'AA|BA', 'AB|BB'},
  'AA|BB': {'AA|BB', 'BB|AA'},
  'AB|BA': {'AB|BA', 'BA|AB'}}
 
@@ -45,7 +44,7 @@ for state in stateorder:
     dips = states[state]
     unordered = {tuple(sorted(x.split('|'))) for x in dips}
     corrections.append(sympy.nsimplify(1/len(unordered)))
-#>>> print(correction)
+#>>> print(corrections)
 #[1/2, 1/2, 1/4, 1, 1]
 correction = sympy.zeros(len(corrections), len(corrections))
 for x in range(0,len(corrections)):
@@ -69,22 +68,16 @@ for i,g in enumerate(genotypes):
 # >>> print(incidence)
         
 # 'AA|AA', 'AB|AB', 'AA|AB', 'AA|BB', 'AB|BA'    
-# Matrix([[1, 0, 0, 0, 0],   'AA|AA'
-#         [0, 0, 1, 0, 0],   'AA|AB'
-#         [0, 0, 1, 0, 0],   'AA|BA'
-#         [0, 0, 0, 1, 0],   'AA|BB'
-#         [0, 0, 1, 0, 0],   'AB|AA'
-#         [0, 1, 0, 0, 0],   'AB|AB'
-#         [0, 0, 0, 0, 1],   'AB|BA'
-#         [0, 0, 1, 0, 0],   'AB|BB'
-#         [0, 0, 1, 0, 0],   'BA|AA'
-#         [0, 0, 0, 0, 1],   'BA|AB'
-#         [0, 1, 0, 0, 0],   'BA|BA'
-#         [0, 0, 1, 0, 0],   'BA|BB'
-#         [0, 0, 0, 1, 0],   'BB|AA'
-#         [0, 0, 1, 0, 0],   'BB|AB'
-#         [0, 0, 1, 0, 0],   'BB|BA'
-#         [1, 0, 0, 0, 0]])  'BB|BB'
+#Matrix([[1, 0, 0, 0, 0],
+#        [0, 0, 1, 0, 0],
+#        [0, 0, 1, 0, 0],
+#        [0, 0, 0, 1, 0],
+#        [0, 1, 0, 0, 0],
+#        [0, 0, 0, 0, 1],
+#        [0, 0, 1, 0, 0],
+#        [0, 1, 0, 0, 0],
+#        [0, 0, 1, 0, 0],
+#        [1, 0, 0, 0, 0]])
 
 #Initialize the transition dictionary
 transitions = {x: {y: 0 for y in states.keys()} for x in states.keys() }

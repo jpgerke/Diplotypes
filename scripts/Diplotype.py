@@ -237,7 +237,7 @@ if __name__ == '__main__':
     c = Diplotype(["AA", "AA"])
     d = Diplotype(["AB", "CD"])
     x = d.selfmate()
-    print("selfing products of AA|BB:")
+    print("selfing products of AB|CD:")
     print('\n'.join([str(x) for x in x]))
     print('\n')
     probs = defaultdict(float)
