@@ -5,8 +5,10 @@ Created on Sat Feb  6 16:02:14 2016
 @author: justi
 """
 import sympy
+import numpy as np
 import Diplotype as dp
 from Biparental import eqs
+
 
 r,k = sympy.symbols('r k')
 
@@ -130,4 +132,26 @@ for i in range(0,D.shape[0]):
 # eigenvectors * eigenvalues**k-1 * eigenvectors**-1 * correction factor
 
 #Result
+#P_0*Z*P*D^k*P^-1*C
 res = F1vec*incidence*P*D*Pin*correction
+
+###Validation
+#centimorgan range from 0 to 100 (in Morgans)
+cM = np.arange(0,1,0.01)
+#convert to recombination probabilities
+rvec = dp.recfun(cM)
+
+tol = 1e-8
+for gen in range(2,5):
+    for eq in range(0,5):
+        test = res[0,eq].subs({k:gen})
+        test = sympy.lambdify(r, test, "numpy")
+        val = eqs[eq].subs({k:gen})
+        val = sympy.lambdify(r, val, "numpy")
+        diffs = np.max(np.abs(val(rvec) - test(rvec)))
+        assert(diffs < tol)
+       # print(diffs)
+    
+    
+    
+    
