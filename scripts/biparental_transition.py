@@ -19,6 +19,18 @@ genotypes = sorted([str(x) for x in F2])
 #'AB|AB', 'AB|BA', 'AB|BB', 'BA|BA',
 #'BA|BB', 'BB|BB']
 
+#==============================================================================
+# #Code to transliterate symmetric parents
+# #a utilty to help automate some of the symmetry groupings
+# eqsets = [{'A', 'B'}, {'C', 'D'}]
+# transiter = [(str.maketrans(''.join(sorted(x)),
+#                             ''.join(sorted(x, reverse=True)))) for x in eqs]
+#                             
+# substrate = {'AA|CC'}                          
+# for trans in transiter:
+#     substrate |= {x.translate(trans) for x in substrate}
+#==============================================================================
+
 #F1 Diplotype frequencies in order of 'genotypes'
 F1vec = sympy.zeros(1, len(genotypes))
 F1vec[0,genotypes.index('AA|BB')] = 1
@@ -30,20 +42,15 @@ states = {
  'AA|AA': {'AA|AA', 'BB|BB'},
  'AB|AB': {'AB|AB', 'BA|BA'},
  'AA|AB': {'AA|AB', 'BA|BB', 'AA|BA', 'AB|BB'},
- 'AA|BB': {'AA|BB', 'BB|AA'},
- 'AB|BA': {'AB|BA', 'BA|AB'}}
+ 'AA|BB': {'AA|BB'},
+ 'AB|BA': {'AB|BA'}}
 
 #Set the desired order for the collapsed states
 stateorder= ['AA|AA', 'AB|AB', 'AA|AB', 'AA|BB', 'AB|BA']
 
 #Construct a diagonal matrix as a correction factor
 #for the number of diplotypes per collapsed state
-#In the state collapse, the dipotype order does not matter
-corrections = []
-for state in stateorder:
-    dips = states[state]
-    unordered = {tuple(sorted(x.split('|'))) for x in dips}
-    corrections.append(sympy.nsimplify(1/len(unordered)))
+corrections = [sympy.nsimplify(1/len(states[x])) for x in stateorder]
 #>>> print(corrections)
 #[1/2, 1/2, 1/4, 1, 1]
 correction = sympy.zeros(len(corrections), len(corrections))
@@ -55,7 +62,6 @@ for x in range(0,len(corrections)):
 #        [0, 0, 1/4, 0, 0],
 #        [0, 0, 0,  1,  0],
 #        [0, 0, 0, 0,   1]])
-
 
 incidence = sympy.zeros(len(genotypes), len(stateorder))
 #Genotype to collapsed state incidence matrix
