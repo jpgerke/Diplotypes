@@ -25,10 +25,12 @@ genotypes = sorted([str(x) for x in F2])
 # eqsets = [{'A', 'B'}, {'C', 'D'}]
 # transiter = [(str.maketrans(''.join(sorted(x)),
 #                             ''.join(sorted(x, reverse=True)))) for x in eqs]
-#                             
-# substrate = {'AA|CC'}                          
+#
+# substrate = {'AA|CC'}
 # for trans in transiter:
 #     substrate |= {x.translate(trans) for x in substrate}
+# >>>print(substrate)
+# {'BB|CC', 'BB|DD', 'AA|CC', 'AA|DD'}
 #==============================================================================
 
 #F1 Diplotype frequencies in order of 'genotypes'
@@ -72,8 +74,8 @@ for i,g in enumerate(genotypes):
             incidence[i,j] = 1
             continue
 # >>> print(incidence)
-        
-# 'AA|AA', 'AB|AB', 'AA|AB', 'AA|BB', 'AB|BA'    
+
+# 'AA|AA', 'AB|AB', 'AA|AB', 'AA|BB', 'AB|BA'
 #Matrix([[1, 0, 0, 0, 0],
 #        [0, 0, 1, 0, 0],
 #        [0, 0, 1, 0, 0],
@@ -108,7 +110,7 @@ for x in states.keys():
 #AA|AA:{'AB|AB': 0, 'AA|AB': 0, 'AB|BA': 0, 'AA|AA': 1, 'AA|BB': 0}
 #AA|BB:{'AB|AB': r**2/2, 'AA|AB': 2*r*(-r + 1), 'AB|BA': r**2/2,
 #       'AA|AA': (r - 1)**2/2, 'AA|BB': (r - 1)**2/2}
-     
+
 ### Convert the dict to a matrix
 trans_list = []
 for x in stateorder:
@@ -150,7 +152,3 @@ for gen in range(2,5):
         diffs = np.max(np.abs(val(rvec) - test(rvec)))
         assert(diffs < tol)
        # print(diffs)
-    
-    
-    
-    
