@@ -88,9 +88,9 @@ class Diplotype(object):
     def __repr__(self):
         class_name = type(self).__name__
         if self.prob == 1:
-            return '{}({})'.format(class_name, self.__origin)
+            return '{}({})'.format(class_name, self.haplotypes)
         else:
-            return '{}({}, {})'.format(class_name, self.__origin, self.prob)
+            return '{}({}, {})'.format(class_name, self.haplotypes, self.prob)
     
     def __str__(self):
         return "|".join(self.haplotypes)
