@@ -6,13 +6,13 @@ Created on Mon Feb 15 07:23:55 2016
 """
 
 import sympy
-import numpy as np
+import dill
 import Diplotype as dp
 
 r,k = sympy.symbols('r k')
 
 #==============================================================================
-# Cross Design 
+# Cross Design
 #
 # Symetric double-cross hybrid followed by selfing.
 #
@@ -74,7 +74,7 @@ for key,value in eqsets.items():
 #              ('AB|AB', 'CD|CD'),
 #              ('AA|AC', 'CA|CC'),
 #              ('AA|CA', 'AC|CC')]
-#              
+#
 #for x,y in symmetries:
 #    eqsets[x] |= eqsets[y]
 #    eqsets.pop(y, None)
@@ -90,7 +90,7 @@ corrections = [sympy.nsimplify(1/len(states[x])) for x in stateorder]
 correction = sympy.zeros(len(corrections), len(corrections))
 for x in range(0,len(corrections)):
     correction[x,x] = corrections[x]
-    
+
 incidence = sympy.zeros(len(geno_order), len(stateorder))
 #Genotype to collapsed state incidence matrix
 for i,g in enumerate(geno_order):
@@ -99,7 +99,7 @@ for i,g in enumerate(geno_order):
             j = stateorder.index(key)
             incidence[i,j] = 1
             continue
-        
+
 #Initialize the transition dictionary
 transitions = {x: {y: 0 for y in states.keys()} for x in states.keys() }
 
@@ -114,7 +114,7 @@ for x in states.keys():
             #add the probability if the progeny is in the state
             if str(p) in states[y]:
                     transitions[x][y] = sympy.simplify(transitions[x][y] + p.prob)
-                    
+
 ### Convert the dict to a matrix
 trans_list = []
 for x in stateorder:
@@ -124,6 +124,7 @@ transmat = sympy.Matrix(trans_list)
 P,D = transmat.diagonalize()
 P = sympy.simplify(P)
 Pin = sympy.simplify(P**-1)
+Pin = P**-1
 #raise to power k
 for i in range(0,D.shape[0]):
     D[i,i] = D[i,i]**(k-1)
@@ -136,3 +137,6 @@ F1vec = sympy.simplify(sympy.Matrix(F1vec).T)
 res = F1vec*incidence*P*D*Pin*correction
 
 simple = sympy.simplify(res)
+fourway_eqs = {key: value for key, value in zip(stateorder, simple)}
+dill.dump(fourway_eqs, open("../data/fourway_eq.pkl", 'wb'))
+dill.dump(states, open("../data/fourway_statedict.pkl", 'wb'))
