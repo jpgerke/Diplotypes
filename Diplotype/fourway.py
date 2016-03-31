@@ -127,7 +127,7 @@ Pin = sympy.simplify(P**-1)
 Pin = P**-1
 #raise to power k
 for i in range(0,D.shape[0]):
-    D[i,i] = D[i,i]**(k-1)
+    D[i,i] = D[i,i]**(k)
 
 #create the vector of initial genotypes
 F1dict = {str(x): x.prob for x in F1}
