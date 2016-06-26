@@ -51,34 +51,6 @@ while len(counter) > 0:
 for key,value in eqsets.items():
     print('{}: {}\n'.format(key, value))
 
-#genotypes = {str(x) for x in F2}
-#geno_order = list(sorted(genotypes))
-#
-#equivalents = [{'A', 'B'}, {'C', 'D'}]
-#
-#transiter = [(str.maketrans(''.join(sorted(x)),
-#                            ''.join(sorted(x, reverse=True))))
-#                            for x in equivalents]
-#eqsets = dict()
-#counter = list(range(0, len(geno_order)))
-#while len(counter) > 0:
-#    myset = set([geno_order[counter[0]]])
-#    for trans in transiter:
-#        myset |= {x.translate(trans) for x in myset}
-#    eqsets[geno_order[counter[0]]] = myset
-#    for x in reversed(counter):
-#        if geno_order[x] in myset:
-#            counter.remove(x)
-
-#symmetries = [('AA|AA', 'CC|CC'),
-#              ('AB|AB', 'CD|CD'),
-#              ('AA|AC', 'CA|CC'),
-#              ('AA|CA', 'AC|CC')]
-#
-#for x,y in symmetries:
-#    eqsets[x] |= eqsets[y]
-#    eqsets.pop(y, None)
-
 states = eqsets
 stateorder = list(states.keys())
 
