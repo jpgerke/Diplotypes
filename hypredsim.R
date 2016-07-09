@@ -1,6 +1,9 @@
 library(hypred)
 library(doParallel)
 
+### Code to constuct hypred simulations of meiosis for selfing of breeding crosses by single seed descent.
+### There is still a lot of repeated boilerplate code I could refactor.
+
 #Map in morgans
 snp_pos <- cumsum( seq(0,20,0.5)/100 )
 snp_num <- length(snp_pos)
@@ -59,6 +62,19 @@ fourway <- function(gens=4){
   }
   return(c(gamete_1, gamete_2))
 }
+
+threeway <- function(gens=4){
+  gamete_1 <- hypredRecombine(regmap, genomeA = A, genomeB = B,
+                           mutate = F, block = F)
+  gamete_2 <- C
+  
+  for(i in 1:gens){
+    newgen <- selfgen(gamete_1, gamete_2)
+    gamete_1 <- newgen[1,]
+    gamete_2 <- newgen[2,]
+  }
+  return(c(gamete_1, gamete_2))
+}
   
 nsims <- 100000
 generations <- 4
@@ -66,7 +82,7 @@ nproc <- 4
 cl = makeCluster(nproc)
 registerDoParallel(cl)
 
-#Two-way
+#Two-way sim
 biparental <- foreach(i=1:generations, 
                       .packages="hypred") %dopar% {
                 res <- matrix(nrow=nsims, ncol=2*snp_num)
@@ -76,6 +92,7 @@ biparental <- foreach(i=1:generations,
                 res
               }
 
+#Four-way sim
 quad <- foreach(i=1:generations, 
                 .packages="hypred") %dopar% {
                   res <- matrix(nrow=nsims, ncol=2*snp_num)
@@ -84,11 +101,29 @@ quad <- foreach(i=1:generations,
                   }
                   res
                 }
+
+#Three-way sim
+tri <- foreach(i=1:generations,
+               .packages="hypred") %dopar% {
+                 res <- matrix(nrow=nsims, ncol=2*snp_num)
+                 for(j in 1:nsims) {
+                   res[j,] <- threeway(gens = i)
+                 }
+                 res
+               }
+
+
 for(i in 1:generations) {
-  biname <- paste("../data/biparental", snp_num, i, ".txt", sep="_")
-  fourname <- paste("../data/fourway", snp_num, i, ".txt", sep="_")
+  biname <- paste("./data/biparental", snp_num, i, ".txt", sep="_")
+  fourname <- paste("./data/fourway", snp_num, i, ".txt", sep="_")
   saveRDS(biparental[[i]], file=paste(biname, '.rds', sep=''))
   saveRDS(quad[[i]], file=paste(fourname, '.rds', sep=''))
   write(t(biparental[[i]]), file=biname, ncolumns = 2*snp_num)
   write(t(quad[[i]]), file=fourname, ncolumns = 2*snp_num)
+}
+
+for(i in 1:generations) {
+  triname <- paste("./data/threeway", snp_num, i, ".txt", sep="_")
+  saveRDS(tri[[i]], file=paste(triname, '.rds', sep=''))
+  write(t(tri[[i]]), file=triname, ncolumns = 2*snp_num)
 }
