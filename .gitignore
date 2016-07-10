@@ -2,3 +2,4 @@
 .Rhistory
 /data
 __pycache__
+/notebook/.ipynb_checkpoints
